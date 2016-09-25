@@ -1,14 +1,52 @@
 package main
 
-import "net"
+import (
+	"net"
+	"regexp"
+)
+
+const (
+	defaultWhoisServer = "com.whois-servers.net"
+)
 
 //Run getting whois information.
-func Run(domain, server string) (string, error) {
-    return whoisRequest(domain, server)
+func Run(domain string, servers ...string) (string, error) {
+	var responce string
+
+	for _, server := range servers {
+		responce, err := request(domain, server)
+		if err == nil && responce != "" {
+			break
+		}
+	}
+
+	if responce == "" || len(servers) == 0 {
+		server, err := getServer(domain, defaultWhoisServer)
+		if err != nil {
+			return "", err
+		}
+		responce, err = request(domain, server)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return responce, nil
 }
 
-func whoisRequest(domain, server string) (string, error) {
-	conn, err := net.Dial("tcp", server + ":43")
+func getServer(domain, server string) (string, error) {
+	responce, err := request(domain, server)
+	if err != nil {
+		return "", err
+	}
+	serverRegexp := regexp.MustCompile("(?i)whois server:\\s*([^\\s]+)")
+	serverWhois := serverRegexp.FindStringSubmatch(responce)[1]
+
+	return serverWhois, nil
+}
+
+func request(domain, server string) (string, error) {
+	conn, err := net.Dial("tcp", server+":43")
 
 	if err != nil {
 		return "", err
@@ -27,9 +65,9 @@ func whoisRequest(domain, server string) (string, error) {
 		sbuf := buf[0:numBytes]
 		result = append(result, sbuf...)
 
-        if err != nil {
-            break
-        }
+		if err != nil {
+			break
+		}
 	}
 
 	return string(result), nil
