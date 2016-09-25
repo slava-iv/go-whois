@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net"
 	"regexp"
 )
@@ -12,9 +13,10 @@ const (
 //Run getting whois information.
 func Run(domain string, servers ...string) (string, error) {
 	var responce string
+	var err error
 
 	for _, server := range servers {
-		responce, err := request(domain, server)
+		responce, err = request(domain, server)
 		if err == nil && responce != "" {
 			break
 		}
@@ -29,6 +31,10 @@ func Run(domain string, servers ...string) (string, error) {
 		if err != nil {
 			return "", err
 		}
+	}
+
+	if responce == "" {
+		return "", fmt.Errorf("whois information for %s not found", domain)
 	}
 
 	return responce, nil
