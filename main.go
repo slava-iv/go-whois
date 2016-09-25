@@ -7,6 +7,6 @@ func main() {
 	if err != nil {
 		fmt.Print(err)
 	} else {
-		fmt.Println(result)
+		fmt.Println(result.Registrant.Email)
 	}
 }

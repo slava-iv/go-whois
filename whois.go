@@ -4,14 +4,29 @@ import (
 	"fmt"
 	"net"
 	"regexp"
+
+	"github.com/likexian/whois-parser-go"
 )
 
 const (
 	defaultWhoisServer = "com.whois-servers.net"
 )
 
-//Run getting whois information.
-func Run(domain string, servers ...string) (string, error) {
+//Run method returns parsed whois information.
+func Run(domain string, servers ...string) (*whois_parser.WhoisInfo, error) {
+	responce, err := RunRequest(domain, servers...)
+	if err != nil {
+		return nil, err
+	}
+	result, err := whois_parser.Parser(responce)
+	if err != nil {
+		return nil, err
+	}
+	return &result, err
+}
+
+//RunRequest method returns whois information.
+func RunRequest(domain string, servers ...string) (string, error) {
 	var responce string
 	var err error
 
